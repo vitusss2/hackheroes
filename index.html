@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoStat - Statystyki Klimatyczne</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+    <style>
+      .chart-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+      }
+      .chart-box {
+        width: 45%;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.3s;
+      }
+      .chart-box:hover {
+        transform: scale(1.05);
+      }
+      #chart-fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+      }
+      #chart-fullscreen canvas {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      #close-fullscreen {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        font-size: 2em;
+        color: white;
+        cursor: pointer;
+      }
+      .content-section {
+        background-color: #f0f0f0;
+        padding: 40px 20px;
+        text-align: center;
+      }
+      .content-section img {
+        max-width: 25%;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 data-aos="fade-down">EcoStat - Statystyki Klimatyczne</h1>
+      <nav>
+        <ul>
+          <li>
+            <a href="index.html"><i class="fas fa-home"></i> Strona Główna</a>
+          </li>
+          <li>
+            <a href="recycling.html"
+              ><i class="fas fa-recycle"></i> Recykling</a
+            >
+          </li>
+          <li>
+            <a href="climate-change.html"
+              ><i class="fas fa-temperature-high"></i> Zmiany Klimatyczne</a
+            >
+          </li>
+          <li>
+            <a href="personal-action.html"
+              ><i class="fas fa-hands-helping"></i> Twoje Działania</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section data-aos="fade-up">
+        <h2>Wybierz Miasto</h2>
+        <select id="city-select">
+          <option value="global">Globalne</option>
+          <option value="krakow">Kraków</option>
+          <option value="warsaw">Warszawa</option>
+          <option value="gdansk">Gdańsk</option>
+        </select>
+      </section>
+      <section class="chart-container" data-aos="fade-up">
+        <div class="chart-box" id="chart1" onclick="showFullscreen('co2Chart')">
+          <h3>Emisja CO2 (mln ton)</h3>
+          <canvas id="co2Chart"></canvas>
+        </div>
+        <div
+          class="chart-box"
+          id="chart2"
+          onclick="showFullscreen('renewableChart')"
+        >
+          <h3>Zużycie Energii Odnawialnej (%)</h3>
+          <canvas id="renewableChart"></canvas>
+        </div>
+        <div
+          class="chart-box"
+          id="chart3"
+          onclick="showFullscreen('temperatureChart')"
+        >
+          <h3>Średnia Temperatura (°C)</h3>
+          <canvas id="temperatureChart"></canvas>
+        </div>
+        <div
+          class="chart-box"
+          id="chart4"
+          onclick="showFullscreen('airPollutionChart')"
+        >
+          <h3>Zanieczyszczenie Powietrza (PM2.5)</h3>
+          <canvas id="airPollutionChart"></canvas>
+        </div>
+      </section>
+      <section class="content-section" data-aos="fade-up">
+        <h2>Ciekawostki Ekologiczne</h2>
+        <img src="las.png" alt="Obraz lasu z Unsplash" />
+        <p>
+          Czy wiesz, że recykling jednej tony papieru oszczędza około 17 drzew?
+          To tylko jeden z powodów, dlaczego warto dbać o środowisko. Każda
+          nasza decyzja ma wpływ na planetę, dlatego warto dokonywać wyborów
+          przyjaznych dla środowiska.
+        </p>
+      </section>
+      <section class="content-section" data-aos="fade-up">
+        <h2>Energia Odnawialna</h2>
+        <img src="energia.png" alt="Obraz energii odnawialnej z Unsplash" />
+        <p>
+          Coraz więcej krajów na świecie stawia na energię odnawialną. Energia
+          pochodząca z wiatru, słońca czy wody nie tylko zmniejsza emisję gazów
+          cieplarnianych, ale także wspiera niezależność energetyczną. Warto
+          wiedzieć, jak takie źródła energii mogą zmieniać nasz świat na lepsze.
+        </p>
+      </section>
+    </main>
+    <div id="chart-fullscreen">
+      <i id="close-fullscreen" class="fas fa-times"></i>
+      <canvas id="fullscreenChart"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init()
+
+      const citySelect = document.getElementById("city-select")
+      const charts = {
+        co2Chart: null,
+        renewableChart: null,
+        temperatureChart: null,
+        airPollutionChart: null,
+      }
+
+      function createChart(ctx, type, data, options) {
+        return new Chart(ctx, {
+          type: type,
+          data: data,
+          options: options,
+        })
+      }
+
+      function updateCharts(city) {
+        // Dane do wykresów w zależności od wybranego miasta
+        const dataByCity = {
+          global: {
+            co2: [3000, 3200, 3400, 3600, 3800],
+            renewable: [15, 20, 25, 30, 35],
+            temperature: [14.2, 14.3, 14.5, 14.8, 15.1],
+            airPollution: [50, 55, 53, 60, 58],
+          },
+          krakow: {
+            co2: [500, 520, 530, 550, 560],
+            renewable: [10, 15, 20, 25, 30],
+            temperature: [10, 10.5, 11, 11.5, 12],
+            airPollution: [80, 85, 82, 90, 88],
+          },
+          warsaw: {
+            co2: [600, 620, 640, 660, 680],
+            renewable: [20, 25, 30, 35, 40],
+            temperature: [12, 12.3, 12.5, 13, 13.2],
+            airPollution: [70, 75, 73, 78, 76],
+          },
+          gdansk: {
+            co2: [400, 420, 440, 460, 480],
+            renewable: [25, 30, 35, 40, 45],
+            temperature: [9, 9.5, 10, 10.2, 11],
+            airPollution: [60, 65, 63, 68, 66],
+          },
+        }
+
+        const selectedData = dataByCity[city]
+
+        if (charts.co2Chart) charts.co2Chart.destroy()
+        charts.co2Chart = createChart(
+          document.getElementById("co2Chart").getContext("2d"),
+          "line",
+          {
+            labels: ["2000", "2005", "2010", "2015", "2020"],
+            datasets: [
+              {
+                label: "Emisja CO2 (w mln ton)",
+                data: selectedData.co2,
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 2,
+              },
+            ],
+          },
+          { responsive: true }
+        )
+
+        if (charts.renewableChart) charts.renewableChart.destroy()
+        charts.renewableChart = createChart(
+          document.getElementById("renewableChart").getContext("2d"),
+          "bar",
+          {
+            labels: ["2000", "2005", "2010", "2015", "2020"],
+            datasets: [
+              {
+                label: "Zużycie Energii Odnawialnej (%)",
+                data: selectedData.renewable,
+                backgroundColor: "rgba(153, 102, 255, 0.5)",
+                borderColor: "rgba(153, 102, 255, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          { responsive: true }
+        )
+
+        if (charts.temperatureChart) charts.temperatureChart.destroy()
+        charts.temperatureChart = createChart(
+          document.getElementById("temperatureChart").getContext("2d"),
+          "line",
+          {
+            labels: ["2000", "2005", "2010", "2015", "2020"],
+            datasets: [
+              {
+                label: "Średnia Temperatura (°C)",
+                data: selectedData.temperature,
+                borderColor: "rgba(255, 99, 132, 1)",
+                borderWidth: 2,
+              },
+            ],
+          },
+          { responsive: true }
+        )
+
+        if (charts.airPollutionChart) charts.airPollutionChart.destroy()
+        charts.airPollutionChart = createChart(
+          document.getElementById("airPollutionChart").getContext("2d"),
+          "line",
+          {
+            labels: ["2000", "2005", "2010", "2015", "2020"],
+            datasets: [
+              {
+                label: "Zanieczyszczenie Powietrza (PM2.5)",
+                data: selectedData.airPollution,
+                borderColor: "rgba(255, 206, 86, 1)",
+                borderWidth: 2,
+              },
+            ],
+          },
+          { responsive: true }
+        )
+      }
+
+      citySelect.addEventListener("change", () => {
+        updateCharts(citySelect.value)
+      })
+
+      updateCharts("global")
+
+      // Powiększanie wykresu
+      const fullscreenContainer = document.getElementById("chart-fullscreen")
+      const fullscreenChart = document
+        .getElementById("fullscreenChart")
+        .getContext("2d")
+      let fullscreenChartInstance = null
+
+      function showFullscreen(chartId) {
+        const canvas = document.getElementById(chartId)
+        const chartData = canvas.chartInstance.data
+        const chartOptions = canvas.chartInstance.options
+
+        fullscreenContainer.style.display = "flex"
+        if (fullscreenChartInstance) fullscreenChartInstance.destroy()
+        fullscreenChartInstance = createChart(
+          fullscreenChart,
+          "line",
+          chartData,
+          chartOptions
+        )
+      }
+
+      document
+        .getElementById("close-fullscreen")
+        .addEventListener("click", () => {
+          fullscreenContainer.style.display = "none"
+          if (fullscreenChartInstance) fullscreenChartInstance.destroy()
+        })
+    </script>
+  </body>
+</html>

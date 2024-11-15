@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoStat - Twoje Działania</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <h1 data-aos="fade-down">EcoStat - Twoje Działania</h1>
+      <nav>
+        <ul>
+          <li>
+            <a href="index.html"><i class="fas fa-home"></i> Strona Główna</a>
+          </li>
+          <li>
+            <a href="recycling.html"
+              ><i class="fas fa-recycle"></i> Recykling</a
+            >
+          </li>
+          <li>
+            <a href="climate-change.html"
+              ><i class="fas fa-temperature-high"></i> Zmiany Klimatyczne</a
+            >
+          </li>
+          <li>
+            <a href="personal-action.html"
+              ><i class="fas fa-hands-helping"></i> Twoje Działania</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section data-aos="fade-up">
+        <h2>Jak Możesz Pomóc?</h2>
+        <p>
+          Każdy z nas może przyczynić się do ochrony środowiska. Poniżej
+          znajdziesz kilka pomysłów, jak możesz aktywnie działać na rzecz
+          planety, od recyklingu, przez oszczędzanie energii, aż po zalesianie.
+        </p>
+      </section>
+      <section data-aos="fade-left">
+        <h2>Dodaj Własną Inicjatywę</h2>
+        <form id="action-form">
+          <input
+            type="text"
+            id="action-title"
+            placeholder="Tytuł inicjatywy"
+            required
+          />
+          <textarea
+            id="action-description"
+            placeholder="Opis Twojej inicjatywy"
+            required
+          ></textarea>
+          <button type="submit">Prześlij</button>
+        </form>
+        <div id="submitted-actions"></div>
+      </section>
+    </main>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init()
+    </script>
+    <script src="script-personal-action.js"></script>
+  </body>
+</html>
